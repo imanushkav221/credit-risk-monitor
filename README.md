@@ -4,7 +4,7 @@ A credit-risk monitoring dashboard built from 5 synthetic bank tables (14,685 lo
 embedded AI features: **Ask the Portfolio** (LLM Q&A grounded in the data) and **anomaly detection** with an analyst
 review queue.
 
-- Hosted app: `<add Streamlit Cloud link>`
+- Hosted app: https://credit-risk-monitor-el.streamlit.app/
 - Demo video: `<add link>`
 
 **Python version:** 3.13 (tested on 3.13; every package in `requirements.txt` is pinned).
@@ -47,7 +47,7 @@ fewer phrasings. If the LLM call fails (bad key, quota), the app falls back the 
 |---|---|
 | 1. Data ingestion, joins, data-quality decisions | `src/ingest.py` (cleaning + DQ log), `src/features.py` (joins and aggregation). Log in `data/processed/dq_log.csv` and the **Data & method** view |
 | 2. Portfolio analytics, 4-5 insights with "so what", cross-cut | `src/analytics.py`; shown at the bottom of the **Portfolio** view; cross-cut heatmap in the same view |
-| 3. Default model: LR baseline + ML model, AUC/KS/Gini, SHAP, monitoring | `src/model.py`; **Model** view; `data/processed/model_results.json` |
+| 3. Default model: LR baseline + ML model, AUC/KS/Gini, SHAP, monitoring | `src/model.py`, `src/monitoring.py`; **Model** and **Monitoring** views; `data/processed/model_results.json` |
 | 4. Dashboard: portfolio view, account view, filters, drill-down | `app/app.py` (**Portfolio**, **Account** views; sidebar filters; drill-down table) |
 | AI feature 1: Ask the Portfolio | `src/ask.py`, `src/llm.py`; **Ask the Portfolio** view |
 | AI feature 2: Anomaly detection + review | `src/anomaly.py`; **Anomaly review** view |
@@ -68,7 +68,8 @@ src/
   ingest.py               # load, validate, clean, DQ log
   features.py             # account-level dataset (joins + aggregations)
   analytics.py            # profiles and insights
-  model.py                # LR + LightGBM, metrics, SHAP, monitoring stats
+  model.py                # LR + LightGBM, metrics, SHAP
+  monitoring.py           # PSI, cohort AUC/KS, calibration, RAG health check
   anomaly.py              # three anomaly detectors + reasons
   llm.py                  # provider-agnostic LLM client (plain HTTPS)
   ask.py                  # Ask the Portfolio: plan -> validate -> execute -> narrate -> verify

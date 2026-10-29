@@ -1063,5 +1063,208 @@
     "flagged": 654,
     "default_rate_flagged": 0.2844,
     "default_rate_not_flagged": 0.1552
+  },
+  "monitoring": {
+    "reference": "2018-2020 originations (7,317 accounts)",
+    "psi": [
+      {
+        "cohort": 2021,
+        "feature": "Model PD (score)",
+        "psi": 0.0048
+      },
+      {
+        "cohort": 2021,
+        "feature": "Annual income",
+        "psi": 0.0061
+      },
+      {
+        "cohort": 2021,
+        "feature": "Average DPD (12m)",
+        "psi": 0.0055
+      },
+      {
+        "cohort": 2021,
+        "feature": "Annual EMI / income",
+        "psi": 0.0066
+      },
+      {
+        "cohort": 2021,
+        "feature": "Bureau write-offs",
+        "psi": 0.0
+      },
+      {
+        "cohort": 2021,
+        "feature": "Loan amount",
+        "psi": 0.0044
+      },
+      {
+        "cohort": 2022,
+        "feature": "Model PD (score)",
+        "psi": 0.0056
+      },
+      {
+        "cohort": 2022,
+        "feature": "Annual income",
+        "psi": 0.0019
+      },
+      {
+        "cohort": 2022,
+        "feature": "Average DPD (12m)",
+        "psi": 0.0073
+      },
+      {
+        "cohort": 2022,
+        "feature": "Annual EMI / income",
+        "psi": 0.0048
+      },
+      {
+        "cohort": 2022,
+        "feature": "Bureau write-offs",
+        "psi": 0.0
+      },
+      {
+        "cohort": 2022,
+        "feature": "Loan amount",
+        "psi": 0.0026
+      },
+      {
+        "cohort": 2023,
+        "feature": "Model PD (score)",
+        "psi": 0.0025
+      },
+      {
+        "cohort": 2023,
+        "feature": "Annual income",
+        "psi": 0.0061
+      },
+      {
+        "cohort": 2023,
+        "feature": "Average DPD (12m)",
+        "psi": 0.0049
+      },
+      {
+        "cohort": 2023,
+        "feature": "Annual EMI / income",
+        "psi": 0.0023
+      },
+      {
+        "cohort": 2023,
+        "feature": "Bureau write-offs",
+        "psi": 0.0003
+      },
+      {
+        "cohort": 2023,
+        "feature": "Loan amount",
+        "psi": 0.0048
+      }
+    ],
+    "performance": [
+      {
+        "cohort": 2018,
+        "accounts": 2487,
+        "auc": 0.6523,
+        "ks": 0.2104,
+        "actual_default_rate": 0.1661,
+        "avg_pd": 0.16
+      },
+      {
+        "cohort": 2019,
+        "accounts": 2434,
+        "auc": 0.6799,
+        "ks": 0.2665,
+        "actual_default_rate": 0.1569,
+        "avg_pd": 0.1601
+      },
+      {
+        "cohort": 2020,
+        "accounts": 2396,
+        "auc": 0.6838,
+        "ks": 0.2661,
+        "actual_default_rate": 0.1486,
+        "avg_pd": 0.1608
+      },
+      {
+        "cohort": 2021,
+        "accounts": 2447,
+        "auc": 0.6761,
+        "ks": 0.2807,
+        "actual_default_rate": 0.177,
+        "avg_pd": 0.1636
+      },
+      {
+        "cohort": 2022,
+        "accounts": 2451,
+        "auc": 0.6843,
+        "ks": 0.292,
+        "actual_default_rate": 0.1661,
+        "avg_pd": 0.16
+      },
+      {
+        "cohort": 2023,
+        "accounts": 2470,
+        "auc": 0.6828,
+        "ks": 0.2841,
+        "actual_default_rate": 0.151,
+        "avg_pd": 0.1603
+      }
+    ],
+    "calibration": [
+      {
+        "band": "A (<8%)",
+        "accounts": 2171,
+        "avg_pd": 0.0655,
+        "actual_default_rate": 0.064
+      },
+      {
+        "band": "B (8-13%)",
+        "accounts": 4890,
+        "avg_pd": 0.1044,
+        "actual_default_rate": 0.1049
+      },
+      {
+        "band": "C (13-20%)",
+        "accounts": 4019,
+        "avg_pd": 0.1601,
+        "actual_default_rate": 0.1642
+      },
+      {
+        "band": "D (20-30%)",
+        "accounts": 2319,
+        "avg_pd": 0.2418,
+        "actual_default_rate": 0.2445
+      },
+      {
+        "band": "E (30%+)",
+        "accounts": 1286,
+        "avg_pd": 0.3921,
+        "actual_default_rate": 0.3771
+      }
+    ],
+    "scorecard": [
+      {
+        "check": "Score stability (max PSI of PD vs reference)",
+        "value": 0.006,
+        "threshold": "amber 0.10, red 0.25",
+        "status": "Green"
+      },
+      {
+        "check": "Input drift (max feature PSI)",
+        "value": 0.007,
+        "threshold": "amber 0.10, red 0.25",
+        "status": "Green"
+      },
+      {
+        "check": "Discrimination (lowest cohort AUC)",
+        "value": 0.652,
+        "threshold": "amber < 0.641, red < 0.621 (reference 0.671)",
+        "status": "Green"
+      },
+      {
+        "check": "Calibration (worst band, |PD - actual| / actual)",
+        "value": 0.04,
+        "threshold": "amber 0.15, red 0.25",
+        "status": "Green"
+      }
+    ]
   }
 }

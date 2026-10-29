@@ -79,7 +79,7 @@ class LLM:
     def label(self):
         return f"{self.provider} / {self.model}" if self.available else "not configured"
 
-    def complete(self, system: str, user: str, json_mode=False, max_tokens=600, timeout=40) -> str:
+    def complete(self, system: str, user: str, json_mode=False, max_tokens=600, timeout=25) -> str:
         if not self.available:
             raise LLMError("No LLM API key configured")
         models = [self.model] + [m for m in FALLBACK_MODELS.get(self.provider, []) if m != self.model]

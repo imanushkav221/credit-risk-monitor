@@ -76,9 +76,9 @@ def architecture(path):
         "Bureau -> write-offs, DPD, utilisation", "Left joins + row-count assertion", "Clean dataset: 14,685 x 73"])
     box(c, xs[3], top + 62, bw, 56, "4a. Analytics  src/analytics.py", [
         "pandas group-bys by income, employment,", "region, age, loan type; 5 insights", "computed from data (no hand numbers)"])
-    box(c, xs[3], top - 4, bw, 60, "4b. Model  src/model.py", [
+    box(c, xs[3], top - 4, bw, 64, "4b. Model  src/model.py", [
         "scikit-learn LogisticRegression (baseline)", "LightGBM (challenger), GroupKFold by", "customer, AUC/KS/Gini, TreeSHAP,",
-        "out-of-fold PD -> risk bands A-E"])
+        "OOF PD -> bands A-E; monitoring.py: PSI,", "cohort AUC/KS, calibration, RAG status"])
     box(c, xs[3], top - 70, bw, 60, "4c. Anomaly  src/anomaly.py", [
         "Own history: last 3m vs first 9m", "Peer segment: robust z (loan type x", "income band)",
         "scikit-learn IsolationForest (top 1.5%)"], fill=colors.HexColor("#FFF3E0"), tcol=RED)
@@ -106,9 +106,9 @@ def architecture(path):
     box(c, 22, ay + 112, 150, 82, "Portfolio view", ["KPIs, risk bands x exposure,", "default rate by any dimension,",
                                                      "cross-cut heatmap, vintage trend,", "sidebar filters, drill-down",
                                                      "table -> account"])
-    box(c, 22, ay + 10, 150, 92, "Account / Model / Data views", ["PD, band, top SHAP drivers,", "12m repayment chart,",
+    box(c, 22, ay + 10, 150, 92, "Account / Model / Monitoring", ["PD, band, top SHAP drivers,", "12m repayment chart,",
                                                                   "bureau + collections; ROC, deciles,",
-                                                                  "importance, monitoring; DQ log"])
+                                                                  "importance; PSI, calibration, RAG", "health check, drift simulator"])
     # ask flow
     fx, fy, fw, fh = 185, ay + 118, 96, 76
     steps = [
@@ -183,7 +183,7 @@ def overview(path):
                     "collections, anomaly reasons. Use: explain a score before a limit, collections or override decision."],
         ["Ask the Portfolio", "Plain-English questions with exact figures, the scope used, the result table and the query spec."],
         ["Anomaly review", "Prioritised queue of flagged accounts, why each was flagged, peer comparison, decision + log."],
-        ["Model / Data", "Metrics, ROC, deciles, importance, monitoring plan; join logic and full data-quality log."],
+        ["Model / Monitoring", "Metrics, ROC, deciles, importance; monitoring health check (PSI, cohort AUC/KS, calibration by band, RAG thresholds) and a drift simulator."], ["Data & method", "Join logic and the full data-quality log."],
     ]
     t = Table([[Paragraph(f"<b>{a}</b>", sm), Paragraph(b, sm)] for a, b in views], colWidths=[26 * mm, 160 * mm])
     t.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("BOTTOMPADDING", (0, 0), (-1, -1), 1),

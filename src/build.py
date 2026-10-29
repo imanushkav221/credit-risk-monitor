@@ -17,6 +17,7 @@ from .anomaly import detect
 from .features import build_portfolio, bureau_features
 from .ingest import ingest
 from .model import save_results, train_and_evaluate
+from .monitoring import monitoring_report
 
 
 def main():
@@ -44,6 +45,7 @@ def main():
         "default_rate_not_flagged": round(float(df[~df.anomaly_flag].target_default.mean()), 4),
     }
 
+    res["monitoring"] = monitoring_report(df)
     ins = insights(df)
 
     # save

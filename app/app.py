@@ -119,7 +119,7 @@ if "view" not in st.session_state:
 if "account" not in st.session_state:
     st.session_state.account = df_all.sort_values("pd", ascending=False).account_id.iloc[0]
 
-VIEWS = ["Portfolio", "Account", "Ask the Portfolio", "Anomaly review", "Model", "Data & method"]
+VIEWS = ["Portfolio", "Account", "Ask the Portfolio", "Anomaly review", "Model", "Monitoring", "Data & method"]
 st.sidebar.title("Credit Risk Monitor")
 st.sidebar.radio("View", VIEWS, key="view")
 
@@ -142,6 +142,7 @@ df = df[df.origination_year.between(*f_yr)]
 st.sidebar.markdown(f"**{len(df):,}** of {len(df_all):,} accounts in view")
 st.sidebar.divider()
 st.sidebar.markdown(f"LLM: **{llm.label()}**")
+st.sidebar.markdown("[GitHub repo](https://github.com/imanushkav221/credit-risk-monitor)")
 st.sidebar.caption("Synthetic data, snapshot 2025-12-31. Exposure = outstanding balance after month 12.")
 
 
@@ -177,7 +178,7 @@ def view_portfolio():
         fig.add_scatter(x=rb.risk_band.astype(str), y=rb.default_rate * 100, name="Actual default rate (%)",
                         yaxis="y2", mode="lines+markers", line=dict(color="#222"))
         fig.update_layout(height=340, margin=dict(t=10, b=10), yaxis_title="Exposure ($M)",
-                          yaxis2=dict(overlaying="y", side="right", showgrid=False, title="Default rate (%)"),
+                          yaxis2=dict(overlaying="y", side="right", showgrid=False, title="Default rate (%)", rangemode="tozero"),
                           legend=dict(orientation="h", y=1.12))
         st.plotly_chart(fig, width="stretch")
         st.caption("Bands come from the model PD. Rising actual default rate across bands shows the score ranks risk.")
@@ -207,7 +208,8 @@ def view_portfolio():
                       legend=dict(orientation="h", y=1.12))
     c2.plotly_chart(fig, width="stretch")
     show = t[[dim, "accounts", "default_rate", "avg_pd", "exposure", "exposure_share", "defaulted_exposure_share"]].copy()
-    c1.dataframe(show[[dim, "accounts", "default_rate"]].style.format({"default_rate": "{:.1%}", "accounts": "{:,}"}),
+    c1.dataframe(show[[dim, "accounts", "default_rate"]].rename(columns={dim: dims[dim], "accounts": "Accounts",
+                 "default_rate": "Default rate"}).style.format({"Default rate": "{:.1%}", "Accounts": "{:,}"}),
                  hide_index=True, width="stretch")
 
     st.subheader("Cross-dimensional cut")
@@ -243,17 +245,17 @@ def view_portfolio():
 
     c1, c2 = st.columns(2)
     with c1:
-        st.subheader("Trend by origination quarter")
-        q = df.groupby("origination_quarter").agg(accounts=("account_id", "size"), default_rate=("target_default", "mean"),
+        st.subheader("Trend by origination year")
+        q = df.groupby("origination_year").agg(accounts=("account_id", "size"), default_rate=("target_default", "mean"),
                                                   avg_pd=("pd", "mean")).reset_index()
         fig = go.Figure()
-        fig.add_bar(x=q.origination_quarter, y=q.accounts, name="Accounts originated", marker_color="#CFD8DC")
-        fig.add_scatter(x=q.origination_quarter, y=q.default_rate * 100, name="Default rate (%)", yaxis="y2",
+        fig.add_bar(x=q.origination_year.astype(str), y=q.accounts, name="Accounts originated", marker_color="#CFD8DC")
+        fig.add_scatter(x=q.origination_year.astype(str), y=q.default_rate * 100, name="Default rate (%)", yaxis="y2",
                         line=dict(color="#C62828"))
-        fig.add_scatter(x=q.origination_quarter, y=q.avg_pd * 100, name="Avg PD (%)", yaxis="y2",
+        fig.add_scatter(x=q.origination_year.astype(str), y=q.avg_pd * 100, name="Avg PD (%)", yaxis="y2",
                         line=dict(color="#1565C0", dash="dot"))
-        fig.update_layout(height=330, margin=dict(t=10, b=10), yaxis2=dict(overlaying="y", side="right", showgrid=False, title="%"),
-                          legend=dict(orientation="h", y=1.15))
+        fig.update_layout(height=330, margin=dict(t=10, b=10), yaxis2=dict(overlaying="y", side="right", showgrid=False, title="%", rangemode="tozero"),
+                          yaxis_title="Accounts", legend=dict(orientation="h", y=1.15))
         st.plotly_chart(fig, width="stretch")
     with c2:
         st.subheader("Delinquency by month on book")
@@ -285,7 +287,10 @@ def view_portfolio():
         selection_mode="single-row", key="drill_table",
         column_config={"pd": st.column_config.ProgressColumn("PD", format="percent", min_value=0, max_value=1),
                        "exposure": st.column_config.NumberColumn("Exposure", format="$%,.0f"),
-                       "rep_n_missed": "Missed EMIs", "target_default": "Defaulted"})
+                       "rep_n_missed": "Missed EMIs", "target_default": "Defaulted", "account_id": "Account",
+                       "customer_id": "Customer", "loan_type": "Loan type", "region": "Region",
+                       "employment_type": "Employment", "income_band": "Income", "risk_band": "Risk band",
+                       "anomaly_flag": "Anomaly"})
     if ev.selection.rows:
         acc = seg.head(500).iloc[ev.selection.rows[0]].account_id
         st.button(f"Open account {acc}", on_click=go_account, args=(acc,), type="primary")
@@ -401,11 +406,18 @@ def view_ask():
                 "What is the exposure by region for mortgages?", "How many anomalies are flagged by risk band?",
                 "Average PD for unemployed borrowers by age band", "Tell me about ACC200001",
                 "Why do young borrowers default more?", "What will the default rate be next year?"]
-    st.markdown("**Try:** " + " · ".join(f"`{e}`" for e in examples))
+    st.markdown("**Try one** (click to ask):")
+    picked = None
+    cols = st.columns(2)
+    for i, e in enumerate(examples):
+        if cols[i % 2].button(e, key=f"ex_{i}", width="stretch"):
+            picked = e
     use_filters = st.toggle("Answer within the current sidebar filters", value=False)
     with st.form("ask_form"):
         q = st.text_input("Your question", placeholder="e.g. Which region has the highest exposure?")
         go_btn = st.form_submit_button("Ask", type="primary")
+    if picked:
+        q, go_btn = picked, True
     if go_btn and q:
         base = df if use_filters else df_all
         with st.spinner("Planning query, computing, verifying..."):
@@ -591,21 +603,89 @@ def view_model():
         fig.update_layout(height=420, margin=dict(t=30, b=10), title=title)
         col.plotly_chart(fig, width="stretch")
 
-    st.subheader("Monitoring after deployment")
-    psi = res["feature_psi_train_vs_test"]
-    st.markdown(f"""
+    st.info("Post-deployment monitoring (stability, drift, discrimination, calibration, alert thresholds and a drift "
+            "simulator) is on the **Monitoring** page.")
+
+
+
+# ================================================================== MONITORING
+STATUS_ICON = {"Green": "🟢", "Amber": "🟠", "Red": "🔴"}
+
+
+def view_monitoring():
+    from src.model import psi as psi_fn
+    from src.monitoring import status as rag
+
+    mon = data["res"]["monitoring"]
+    st.title("Model monitoring")
+    st.caption(f"Origination cohorts stand in for monthly scoring batches. Reference population: {mon['reference']}. "
+               "In production the same checks run on every scoring batch and on each cohort once its outcome window closes.")
+    st.subheader("Health check")
+    sc = pd.DataFrame(mon["scorecard"])
+    sc.insert(0, " ", sc.status.map(STATUS_ICON))
+    st.dataframe(sc, hide_index=True, width="stretch")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Stability: PSI by cohort vs reference")
+        p = pd.DataFrame(mon["psi"])
+        fig = px.bar(p, x="cohort", y="psi", color="feature", barmode="group", labels={"psi": "PSI", "cohort": "Cohort"})
+        fig.add_hline(y=0.10, line_dash="dash", line_color="#F57C00", annotation_text="amber 0.10")
+        fig.add_hline(y=0.25, line_dash="dash", line_color="#C62828", annotation_text="red 0.25")
+        fig.update_layout(height=360, margin=dict(t=10, b=10), legend=dict(orientation="h", y=-0.25), legend_title="")
+        fig.update_xaxes(type="category")
+        st.plotly_chart(fig, width="stretch")
+        st.caption("All PSI values are far below 0.10: the synthetic portfolio is stable across vintages.")
+    with c2:
+        st.subheader("Discrimination by cohort")
+        pf = pd.DataFrame(mon["performance"])
+        fig = go.Figure()
+        fig.add_scatter(x=pf.cohort, y=pf.auc, name="AUC", mode="lines+markers", line=dict(color="#1565C0"))
+        fig.add_scatter(x=pf.cohort, y=pf.ks, name="KS", mode="lines+markers", line=dict(color="#C62828"))
+        fig.update_layout(height=360, margin=dict(t=10, b=10), yaxis=dict(range=[0, 1]), legend=dict(orientation="h", y=1.1))
+        fig.update_xaxes(type="category")
+        st.plotly_chart(fig, width="stretch")
+
+    st.subheader("Calibration by risk band")
+    cal = pd.DataFrame(mon["calibration"])
+    fig = go.Figure()
+    fig.add_bar(x=cal.band, y=cal.avg_pd * 100, name="Predicted PD %", marker_color="#90A4AE")
+    fig.add_bar(x=cal.band, y=cal.actual_default_rate * 100, name="Actual default rate %", marker_color="#C62828")
+    fig.update_layout(height=300, margin=dict(t=10, b=10), barmode="group", legend=dict(orientation="h", y=1.15),
+                      yaxis_title="%")
+    st.plotly_chart(fig, width="stretch")
+
+    st.subheader("Drift simulator")
+    st.caption("Shift one input for the most recent cohort and see whether the monitoring would catch it. "
+               "This only demonstrates the alert logic; it does not change the data or the model.")
+    df23 = df_all[df_all.origination_year == df_all.origination_year.max()]
+    ref = df_all[df_all.origination_year.isin([2018, 2019, 2020])]
+    feats = {"annual_income": "Annual income", "emi_to_income": "Annual EMI / income", "rep_mean_dpd": "Average DPD (12m)",
+             "loan_amount": "Loan amount", "pd": "Model PD (score)"}
+    c1, c2, c3 = st.columns([2, 2, 3])
+    f = c1.selectbox("Input", list(feats), format_func=feats.get)
+    shift = c2.slider("Shift (%)", -50, 50, 0, 5)
+    shifted = df23[f] * (1 + shift / 100)
+    v = psi_fn(ref[f].values, shifted.values)
+    s_ = rag(v, 0.10, 0.25)
+    c3.metric(f"PSI for {feats[f]}", f"{v:.3f}", help="amber at 0.10, red at 0.25")
+    c3.markdown(f"Status: {STATUS_ICON[s_]} **{s_}**" + {"Green": " - no action.",
+                "Amber": " - investigate the source data and segment mix before the next scoring run.",
+                "Red": " - alert the model owner; hold automated decisions on affected segments until reviewed."}[s_])
+
+    st.subheader("Monitoring plan")
+    st.markdown("""
 | What | How | Threshold / action |
 |---|---|---|
-| Score stability | PSI of the PD distribution, monthly vs the development sample (now: {res['out_of_time_2023']['score_psi_2018_22_vs_2023']:.3f} for 2023 vs 2018-22) | < 0.10 stable · 0.10-0.25 investigate · > 0.25 escalate to model owner |
-| Input drift | PSI per key feature (income {psi['annual_income']:.3f}, avg DPD {psi['rep_mean_dpd']:.3f}, EMI/income {psi['emi_to_income']:.3f}) plus missing-rate and range checks in the build | same PSI bands; any new category or missing-rate jump > 5 pts blocks the run |
-| Discrimination | AUC / KS / Gini on each matured monthly cohort (once its outcome window closes) | AUC drop > 0.03 vs development, or KS < 0.20 -> review |
-| Calibration | Predicted vs actual default rate per risk band and decile | any band off by > 25% relative for 2 months -> recalibrate |
-| Segment fairness | Default and approval/override rates by age band, gender, region | material gaps go to model risk committee |
-| Overrides and flags | Share of analyst overrides and anomaly confirm / dismiss rates | rising dismiss rate -> retune anomaly thresholds |
+| Score stability | PSI of the PD distribution per scoring batch vs the development sample | < 0.10 stable, 0.10-0.25 investigate, > 0.25 escalate to model owner |
+| Input drift | PSI per key feature, plus missing-rate and range checks in the build | same PSI bands; a new category or a missing-rate jump of 5+ points blocks the run |
+| Discrimination | AUC / KS on each cohort once its outcome window closes | AUC more than 0.03 below reference -> review; 0.05 -> retrain |
+| Calibration | Predicted vs actual default rate per risk band | any band off by more than 15% relative -> review; 25% -> recalibrate |
+| Segment fairness | Default and override rates by age band, gender, region | material gaps go to model risk committee |
+| Human feedback | Analyst overrides and anomaly confirm / dismiss rates | rising dismiss rate -> retune anomaly thresholds |
 
-Retrain on a fixed schedule (e.g. every 6-12 months) or when a trigger fires; the LR challenger is retrained alongside as a benchmark.
+Retrain on a fixed schedule (e.g. every 6-12 months) or when a red trigger fires; the logistic regression is retrained alongside as a benchmark challenger.
 """)
-
 
 # ================================================================== DATA
 def view_data():
@@ -632,4 +712,4 @@ def view_data():
 
 
 {"Portfolio": view_portfolio, "Account": view_account, "Ask the Portfolio": view_ask,
- "Anomaly review": view_anomaly, "Model": view_model, "Data & method": view_data}[st.session_state.view]()
+ "Anomaly review": view_anomaly, "Model": view_model, "Monitoring": view_monitoring, "Data & method": view_data}[st.session_state.view]()
