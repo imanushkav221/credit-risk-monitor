@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Mortgages carry most of the risk in money terms",
+    "finding": "Mortgages are 10% of accounts but 58% of exposure and 70% of defaulted exposure. Their default rate is 24.7% against 15.2% for all other products.",
+    "so_what": "Exposure-weighted, the portfolio's risk is a mortgage question. Prioritise a mortgage underwriting review and request LTV and property values, which are missing from this data, so loss given default can be estimated."
+  },
+  {
+    "title": "Income is the clearest single driver",
+    "finding": "Default rate falls steadily with income, from 25.7% below $58k to 9.5% above $101k (2.7x). The lowest band holds 20% of exposure but 30% of defaulted exposure.",
+    "so_what": "Affordability should drive limits: cap EMI-to-income for the lowest band and route sub-$58k applications for larger loans to manual review."
+  },
+  {
+    "title": "Unemployed, low-income borrowers are the worst segment (cross-cut)",
+    "finding": "Unemployed borrowers earning under $58k default at 38.4% (531 accounts), against 9.1% for salaried borrowers above $101k. Unemployed borrowers are 5% of exposure but 11% of defaulted exposure. Low-income mortgages default at 35.4%.",
+    "so_what": "A combined policy rule (employment status x income) is sharper than either cut-off alone. Require a guarantor or income proof for unemployed applicants and review the existing low-income mortgage book first."
+  },
+  {
+    "title": "Younger borrowers default about twice as often",
+    "finding": "Default rate is 22.2% for ages 21-25 and 10.6% for 56+. Within 21-25, unemployed borrowers reach 45.7%. Region barely matters: default rates range only 15.0%-16.9%.",
+    "so_what": "Use age for monitoring and collections planning, not pricing (age is a protected attribute in many markets). Do not steer risk appetite by region, the differences are noise-sized."
+  },
+  {
+    "title": "The first 12 months of repayment are an early-warning signal",
+    "finding": "Accounts with no late or missed payment in their first 12 months default at 8.1%; those with 5 or more late/missed months default at 35.0%. Borrowers with 3+ written-off bureau lines default at 31.4% (portfolio 16.1%).",
+    "so_what": "Feed the 12-month behaviour score into collections: contact accounts with 3+ late months before they reach 30 DPD, and treat multiple external write-offs as a hard review trigger."
+  }
+]

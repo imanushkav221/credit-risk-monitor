@@ -1,0 +1,34 @@
+table,check,rows_affected,decision
+customers,rows loaded,10000,-
+loans,rows loaded,14685,-
+bureau,rows loaded,22979,-
+repay,rows loaded,176220,-
+collections,rows loaded,8635,-
+customers,duplicate customer_id,0,none found
+loans,duplicate account_id,0,none found
+bureau,duplicate bureau_id,0,none found
+collections,duplicate collection_event_id,0,none found
+repayment_history,duplicate account_id + payment_month,0,none found
+loans,orphan customer_id (no parent row),0,none found
+bureau,orphan customer_id (no parent row),0,none found
+repay,orphan account_id (no parent row),0,none found
+collections,orphan account_id (no parent row),0,none found
+repayment_history,accounts without exactly 12 months of history,0,"none found; every account has months 1-12, so features use a fixed 12-month window"
+bureau_credit,customers with no bureau record (thin file),1008,kept; bureau counts set to 0 and thin_file=1 so the model can treat them separately
+customers,gender coded as M/F instead of Male/Female,600,"mapped M->Male, F->Female"
+customers,years_employed missing,500,23 unemployed set to 0 (all other unemployed rows are 0); rest filled with employment-type median; missing flag kept
+customers,years_employed longer than age minus 16 (implausible),726,capped at age - 16 and flagged
+customers,num_dependents missing,500,filled with median; missing flag kept
+customers,years_at_residence missing,500,filled with median; missing flag kept
+loan_accounts,interest_rate_pct missing,294,filled with median for the same loan_type and tenure; missing flag kept
+loan_accounts,collateral_flag inconsistent with loan_type,0,none found
+loan_accounts,loan originated before customer_since date,7293,kept and flagged; customer_since is treated as unreliable and not used as a model feature
+bureau_credit,days_past_due missing,689,260 closed lines set to 0 (every reported closed line has DPD 0); active/written-off filled with status median; missing flag kept
+bureau_credit,date_closed after the 2025-12-31 snapshot,3149,"status kept as Closed, date flagged as unreliable; dates not used in features"
+bureau_credit,date_closed before date_opened,0,none found
+bureau_credit,outstanding above sanctioned amount,0,none found
+repayment_history,payment_status inconsistent with days_past_due,0,none found
+repayment_history,emi_paid above emi_due,0,none found
+collections_events,collections event dated before the loan was originated,3875,flagged as invalid; excluded from collections metrics (kept in raw for audit)
+collections_events,use in default model,8635,"not used as model features: collections happen after delinquency, so they would leak the outcome"
+bureau_credit,loan-to-bureau pairs where the line was opened after the loan's origination,21104,kept for the monitoring score (bureau is a snapshot at the as-of date); a point-in-time model without these lines is reported as a leakage sensitivity check
