@@ -5,7 +5,7 @@ embedded AI features: **Ask the Portfolio** (LLM Q&A grounded in the data) and *
 review queue.
 
 - Hosted app: https://credit-risk-monitor-el.streamlit.app/
-- Demo video: `<add link>`
+- Demo video: https://drive.google.com/file/d/1pJHhp0iSjp1QQ_O_xGxhlYcu0t7juxHg/view?usp=sharing
 
 **Python version:** 3.13 locally (the hosted app on Streamlit Community Cloud runs 3.14); every package in `requirements.txt` is pinned.
 
