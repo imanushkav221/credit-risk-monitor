@@ -179,7 +179,7 @@ def overview(path):
                       "rate, PD and exposure by any dimension; cross-cut heatmap (any two dimensions); vintage and month-on-book "
                       "trends; drill-down from a segment to its accounts. Sidebar filters (loan type, region, employment, income, "
                       "band, year) apply throughout. Use: find where risk and money concentrate, then drill in."],
-        ["Account", "PD, band, percentile, top drivers (per-account SHAP), profile, 12-month EMI/DPD chart, bureau lines, "
+        ["Account", "PD, band, percentile, top risk drivers for the account, profile, 12-month EMI/DPD chart, bureau lines, "
                     "collections, anomaly reasons. Use: explain a score before a limit, collections or override decision."],
         ["Ask the Portfolio", "Plain-English questions with exact figures, the scope used, the result table and the query spec."],
         ["Anomaly review", "Prioritised queue of flagged accounts, why each was flagged, peer comparison, decision + log."],
@@ -230,13 +230,16 @@ def overview(path):
                            ("TOPPADDING", (0, 0), (-1, -1), 0.8), ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8)]))
     S.append(t)
     S.append(Paragraph(
-        "35 numeric features (12-month repayment behaviour, bureau aggregates, affordability ratios, demographics, missing "
-        "flags) + 9 categoricals. Collections data excluded (post-delinquency leakage). Split grouped by customer; champion "
-        "by grouped-CV AUC. Both models perform alike (the signal is close to additive); LightGBM is kept for TreeSHAP "
-        "account explanations, LR as benchmark. Top drivers: income, years employed, 12-month DPD, bureau DPD, age, late "
-        f"payments. Leakage check with bureau lines opened before origination only: AUC "
-        f"{RES['point_in_time_bureau_holdout']['AUC']:.3f}. Monitoring: score and feature PSI (<0.10 / 0.10-0.25 / >0.25), "
-        "AUC/KS on matured cohorts, calibration by band, segment fairness, override and anomaly-dismiss rates.", p))
+        "35 numeric features (12-month repayment behaviour, bureau aggregates, affordability ratios, age, income, missing "
+        "flags) + loan type and employment type. Seven weak categoricals (marital status, education, housing, purpose, "
+        "channel, region, city tier) were dropped: CV AUC rose 0.676 -> 0.681 and fair-lending risk fell; gender never used. "
+        "Collections excluded (leakage). Split grouped by customer; champion by grouped-CV AUC: the logistic regression, "
+        "an explainable scorecard; LightGBM kept as challenger. Top drivers: income, late payments, loan amount, bureau "
+        f"lines and DPD, years employed, age. Leakage check (bureau lines opened before origination only): AUC "
+        f"{RES['point_in_time_bureau_holdout']['AUC']:.3f}. Monitoring page: PSI, cohort AUC/KS, calibration by band "
+        "(band A currently amber, under-predicts), fairness by segment, drift simulator. Expected loss = PD x assumed "
+        "LGD x exposure. "
+        "", p))
 
     S.append(Paragraph("Top 3 portfolio insights", h2))
     for i, ins in enumerate(INS[:3], 1):

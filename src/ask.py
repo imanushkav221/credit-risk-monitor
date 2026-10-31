@@ -35,6 +35,7 @@ METRICS = {
     "customers": ("Customers", "number of distinct customers", "int"),
     "exposure": ("Exposure", "sum of outstanding balance after month 12, USD", "usd"),
     "defaulted_exposure": ("Defaulted exposure", "outstanding balance of defaulted accounts, USD", "usd"),
+    "expected_loss": ("Expected loss", "sum of PD x LGD x exposure, USD (LGD assumed by product)", "usd"),
     "exposure_share": ("Share of exposure", "exposure of the group (after filters) / exposure of the whole portfolio", "pct"),
     "total_loan_amount": ("Total loan amount", "sum of original loan amount, USD", "usd"),
     "avg_loan_amount": ("Average loan amount", "mean original loan amount, USD", "usd"),
@@ -115,7 +116,8 @@ Rules:
 SCHEMA
 """
 
-NARRATOR_SYSTEM = """You write a short answer (2-3 plain sentences) for a credit-risk analyst.
+NARRATOR_SYSTEM = """You write a short answer (2-3 plain sentences) for a credit-risk analyst, in natural English
+(write "a default rate of 24.7%", not "a Default rate of 24.7%"; do not repeat column headers).
 Use ONLY the numbers in the RESULT table, copied exactly as formatted there. Do not compute new numbers,
 do not round differently, do not add percentages or differences that are not in the table.
 Name the top item(s) and give the exact figures. If a group has very few accounts (under 30), say the figure is
@@ -223,6 +225,8 @@ def _metric(g: pd.DataFrame, name: str, total_exposure: float):
         return g.exposure.sum()
     if name == "defaulted_exposure":
         return g.loc[g.target_default == 1, "exposure"].sum()
+    if name == "expected_loss":
+        return g.expected_loss.sum()
     if name == "exposure_share":
         return g.exposure.sum() / total_exposure if total_exposure else np.nan
     if name == "total_loan_amount":
@@ -319,6 +323,7 @@ def account_lookup(acc: str, df: pd.DataFrame, drivers: pd.DataFrame | None):
 
 # ------------------------------------------------------------------ keyword fallback planner
 _METRIC_WORDS = [
+    (r"expected loss|\bel\b|expected credit loss", "expected_loss"),
     (r"defaulted exposure|exposure .*default", "defaulted_exposure"),
     (r"share of exposure|exposure share|concentrat", "exposure_share"),
     (r"default rate|default|bad rate", "default_rate"),

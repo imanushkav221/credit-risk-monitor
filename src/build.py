@@ -35,6 +35,7 @@ def main():
     res, scored, contrib = train_and_evaluate(df, pit)
     print(f"[build] champion={res['champion']} holdout={res['holdout']}")
     df = df.merge(scored, on="account_id", how="left")
+    df["expected_loss"] = df.pd * df.lgd * df.exposure
 
     anom = detect(df)
     df = df.merge(anom, on="account_id", how="left")

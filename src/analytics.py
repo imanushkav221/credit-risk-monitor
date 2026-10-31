@@ -34,6 +34,8 @@ def profile(df: pd.DataFrame, by, extra_cols=True) -> pd.DataFrame:
     t["defaulted_exposure_share"] = t.defaulted_exposure / t.defaulted_exposure.sum()
     if extra_cols and "pd" in df:
         t["avg_pd"] = g.pd.mean()
+    if extra_cols and "expected_loss" in df:
+        t["expected_loss"] = g.expected_loss.sum()
     return t.reset_index()
 
 

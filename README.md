@@ -95,7 +95,7 @@ the snapshot, 7,293 loans dated before `customer_since` and 3,875 collections ev
 flagged as data errors and kept, not dropped.
 
 **Model.** Split grouped by customer so the same person is never in train and test. Holdout, 5-fold grouped CV and an
-out-of-time test on 2023 originations. Champion chosen on CV AUC. Dashboard scores are out-of-fold. Bureau features
+out-of-time test on 2023 originations. Champion chosen on CV AUC (currently the logistic regression, after dropping seven weak or fairness-sensitive fields; see the Model view). Dashboard scores are out-of-fold. Expected loss = PD x LGD x exposure, with LGD assumed per product (`src/config.py`). Bureau features
 use the latest snapshot (a monitoring score); a point-in-time variant using only lines opened before origination is
 reported as a leakage check.
 

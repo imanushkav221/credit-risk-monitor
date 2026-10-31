@@ -22,3 +22,9 @@ AGE_LABELS = ["21-25", "26-35", "36-45", "46-55", "56+"]
 # Risk bands on the model probability of default (PD).
 PD_BINS = [0, 0.08, 0.13, 0.20, 0.30, 1.0001]
 PD_LABELS = ["A (<8%)", "B (8-13%)", "C (13-20%)", "D (20-30%)", "E (30%+)"]
+
+# Loss given default by product, an assumption in line with typical retail
+# secured / unsecured ranges. Used only for expected loss = PD x LGD x EAD.
+LGD_ASSUMPTIONS = {
+    "Mortgage": 0.20, "Auto Loan": 0.35, "Personal Loan": 0.65, "Credit Card": 0.75, "Business Loan": 0.55,
+}

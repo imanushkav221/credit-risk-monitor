@@ -38,10 +38,21 @@ NUMERIC = [
     "bur_max_dpd", "bur_mean_dpd", "bur_n_dpd30", "bur_n_nonbank", "bur_n_opened_12m",
     "bur_utilization", "bur_debt_to_income", "thin_file",
 ]
-CATEGORICAL = [
-    "loan_type", "loan_purpose", "disbursal_channel", "employment_type", "region",
-    "city_tier", "housing_type", "education_level", "marital_status",
-]
+CATEGORICAL = ["loan_type", "employment_type"]
+
+# Feature selection (grouped 5-fold CV, logistic regression): with all 9
+# categoricals AUC was 0.676; dropping the 7 below raises it to 0.681. They add
+# noise rather than signal, and marital status and housing are attributes a
+# lender should avoid (fair-lending risk). Gender was never used.
+DROPPED_FEATURES = {
+    "marital_status": "no signal; protected attribute in many fair-lending rules",
+    "education_level": "no stable signal; fairness risk",
+    "housing_type": "no signal; proxy risk",
+    "loan_purpose": "no signal",
+    "disbursal_channel": "no signal",
+    "region": "default rate varies only 15.0-16.9% by region",
+    "city_tier": "no signal",
+}
 FEATURES = NUMERIC + CATEGORICAL
 TARGET = "target_default"
 
@@ -191,6 +202,7 @@ def train_and_evaluate(df: pd.DataFrame, df_pit: pd.DataFrame | None = None):
         cv["LightGBM"].append(roc_auc_score(y[fte], oof_gbm[fte]))
         cv["Logistic regression"].append(roc_auc_score(y[fte], oof_lr[fte]))
     res["cv_auc"] = {k: {"mean": round(float(np.mean(v)), 4), "std": round(float(np.std(v)), 4)} for k, v in cv.items()}
+    res["dropped_features"] = DROPPED_FEATURES
     res["oof_all"] = {"LightGBM": metrics(y, oof_gbm), "Logistic regression": metrics(y, oof_lr)}
     # Champion = higher mean grouped-CV AUC (more stable than one holdout).
     champion = max(res["cv_auc"], key=lambda k: res["cv_auc"][k]["mean"])

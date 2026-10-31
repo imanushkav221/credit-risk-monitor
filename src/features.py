@@ -135,7 +135,10 @@ def build_portfolio(t: dict, log=None) -> pd.DataFrame:
     df["emi_to_income"] = df.emi_due * 12 / df.annual_income
     df["bur_debt_to_income"] = df.bur_total_outstanding / df.annual_income
     df["n_loans_customer"] = df.groupby("customer_id").account_id.transform("size")
-    df["exposure"] = df.outstanding_balance  # balance after month 12
+    df["exposure"] = df.outstanding_balance  # balance after month 12 (EAD)
+    # Loss given default: assumption, no recovery data is good enough to estimate it
+    # (collections recoveries are tiny and half the events are mis-dated).
+    df["lgd"] = df.loan_type.map(C.LGD_ASSUMPTIONS)
     df["origination_quarter"] = df.origination_date.dt.to_period("Q").astype(str)
     assert len(df) == len(loans), "join changed the account count"
     return df
