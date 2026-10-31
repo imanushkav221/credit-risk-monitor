@@ -43,8 +43,14 @@ def ensure_built():
     return True
 
 
+def data_version():
+    """Changes whenever the processed files change, so a redeploy with new data never serves the old cache."""
+    files = list(C.PROCESSED.glob("*.parquet")) + list(C.PROCESSED.glob("*.json"))
+    return tuple(sorted((f.name, f.stat().st_size, int(f.stat().st_mtime)) for f in files))
+
+
 @st.cache_data
-def load():
+def load(version=None):
     ensure_built()
     p = C.PROCESSED
     df = pd.read_parquet(p / "portfolio.parquet")
@@ -110,7 +116,8 @@ def how_it_works(trigger, fp, fn, hitl):
 
 
 # ------------------------------------------------------------------ sidebar
-data = load()
+ensure_built()
+data = load(data_version())
 df_all = data["df"]
 llm = LLM()
 

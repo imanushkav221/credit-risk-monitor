@@ -7,7 +7,7 @@ review queue.
 - Hosted app: https://credit-risk-monitor-el.streamlit.app/
 - Demo video: `<add link>`
 
-**Python version:** 3.13 (tested on 3.13; every package in `requirements.txt` is pinned).
+**Python version:** 3.13 locally (the hosted app on Streamlit Community Cloud runs 3.14); every package in `requirements.txt` is pinned.
 
 ## Run it (three commands)
 
